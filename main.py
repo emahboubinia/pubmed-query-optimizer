@@ -110,9 +110,6 @@ def join_keyword(item_list: QueryStructure) -> Union[str, List[Any]]:
     else:
         modified_list.append(item_list)
     
-    # Debug output (you may remove or comment this out)
-    print("Intermediate join_keyword output:", modified_list)
-    
     if "OR" not in modified_list and not is_list_within(modified_list):
         return " ".join(modified_list)
     else:
@@ -165,7 +162,6 @@ def search_pubmed(query: str, or_keywords: List[List[Union[str, None]]]) -> Tupl
         
         # Get baseline result count.
         result_count = perform_search(query)
-        print(f"Baseline result count: {result_count}")
         
         excluded_keywords: List[str] = []
         current_query: str = query
@@ -181,9 +177,7 @@ def search_pubmed(query: str, or_keywords: List[List[Union[str, None]]]) -> Tupl
             
             new_query = current_query.replace(replace_text, "")
             new_count = perform_search(new_query)
-            print(f"Testing removal of '{or_keyword[0]}' yields count: {new_count}")
             if new_count == result_count:
-                print(f"Excluded keyword: {or_keyword[0]}")
                 excluded_keywords.append(or_keyword[0])
                 current_query = new_query
         return result_count, current_query, excluded_keywords
@@ -227,32 +221,18 @@ def main() -> None:
         "-q", "--query",
         type=str,
         help="PubMed search query. Enclose in quotes if necessary.",
-        default="""Gene"""
+        default="""
+        Gene
+        """
     )
     args = parser.parse_args()
     query_str: str = args.query.strip()
 
-    print("Parsing query...")
     parsed_tree = parse_query(query_str)
-    print("Parsed Query Tree:")
-    print(parsed_tree)
-
     minimal_groups = get_minimal_operator_groups(parsed_tree)
-    print("\nMinimal Operator Groups:")
-    for group in minimal_groups:
-        print(group)
-
     joined_keywords = join_keyword(minimal_groups)
-    print("\nJoined Keywords:")
-    print(joined_keywords)
-
     search_query = reverse_joined_keywords(joined_keywords)
-    print("\nReconstructed Search Query:")
-    print(search_query)
-
     or_keyword_list = get_or_keyword(joined_keywords)
-    print("\nOR Keywords for removal testing:")
-    print(or_keyword_list)
 
     result_num, final_search_query, excluded_keywords = search_pubmed(search_query, or_keyword_list)
     print("\n--- Final Results ---")
