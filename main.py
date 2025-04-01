@@ -227,7 +227,9 @@ def main() -> None:
     )
     args = parser.parse_args()
     query_str: str = args.query.strip()
-
+    if "OR" not in query_str:
+        print("The Search Query Doesn't have any 'OR' Operator...")
+        return None
     parsed_tree = parse_query(query_str)
     minimal_groups = get_minimal_operator_groups(parsed_tree)
     joined_keywords = join_keyword(minimal_groups)
